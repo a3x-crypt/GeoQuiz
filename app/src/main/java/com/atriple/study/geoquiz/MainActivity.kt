@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity() {
         Question(R.string.question_asia, true)
     )
 
-    private var currentIndex = 0;
+    private var currentIndex = 0
+    private var answered: Boolean = false //Challenge 3.1
+    private var score = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         trueButton = findViewById(R.id.true_button)
         falseButton = findViewById(R.id.false_button)
         nextButton = findViewById(R.id.next_button)
-        prevButton = findViewById(R.id.prev_button) //Challenge Section 2
+        prevButton = findViewById(R.id.prev_button) //Challenge Ch.2
         questionTextView = findViewById(R.id.question_text_view)
 
         trueButton.setOnClickListener { view: View ->
@@ -50,26 +52,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         nextButton.setOnClickListener {
-            currentIndex = (currentIndex + 1) % questionBank.size
-            updateQuestion()
-
-            //Challenge Section 1
-            var toast = Toast.makeText(this, R.string.next_button, Toast.LENGTH_SHORT)
-            toast.setGravity(Gravity.TOP, 0, 100)
-            toast.show()
+            if (answered) {
+                currentIndex = (currentIndex + 1) % questionBank.size
+                updateQuestion()
+            } else Toast.makeText(this, "Finish the answer first!", Toast.LENGTH_SHORT).show()
         }
 
-        //Challenge Section 2
+        //Challenge Chapter 2.1
         questionTextView.setOnClickListener {
-            currentIndex = (currentIndex + 1) % questionBank.size
-            updateQuestion()
+            if (answered) {
+                currentIndex = (currentIndex + 1) % questionBank.size
+                updateQuestion()
+            } else Toast.makeText(this, "Finish the answer first!", Toast.LENGTH_SHORT).show()
         }
 
-        //Challenge Section 2
+        //Challenge Chapter 2.2
         prevButton.setOnClickListener {
             currentIndex = if (currentIndex == 0) {
                 questionBank.size - 1
             } else currentIndex - 1
+
             updateQuestion()
         }
         updateQuestion()
@@ -101,19 +103,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateQuestion() {
+        // Challenge 3, with Challenge 1 (Gravity.TOP Toast)
+        if (currentIndex == 0) {
+            var toast = Toast.makeText(
+                this,
+                "Your score: ${score * 100 / questionBank.size }%",
+                Toast.LENGTH_LONG
+            )
+            toast.setGravity(Gravity.TOP, 0, 100)
+            toast.show()
+            score = 0
+        }
+
         val questionTextResId = questionBank[currentIndex].textResId
         questionTextView.setText(questionTextResId)
+        answered = false
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        val correctAnswer = questionBank[currentIndex].answer
+        //Challenge 3.1 - using Guard Clause
+        if (answered) return
 
-        val messageResId = if (userAnswer == correctAnswer) {
+        val correctAnswer = questionBank[currentIndex].answer
+        val isCorrect = userAnswer == correctAnswer
+
+        val messageResId = if (isCorrect) {
             R.string.correct_toast
         } else {
             R.string.incorrect_toast
         }
 
+        if(isCorrect) score++
+
+        answered = true
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
     }
 
